@@ -1,0 +1,931 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Tesoro del Libro Mayor</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Concepto: carta náutica nocturna para el juego; hoja contable verde de columnas para la hoja de avance. */
+:root{
+  --font-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --font-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --bg:#07202b; --bg-2:#0b2b39; --panel:#103447; --panel-2:#154259; --line:#245a73;
+  --grid:rgba(120,190,215,.06); --scrim:rgba(3,14,20,.8);
+  --text:#e7f2f5; --muted:#92b6c4;
+  --gold:#f4b73e; --gold-ink:#2a1c00;
+  --good:#55d6a3; --good-bg:#0e4a3c; --bad:#ff6f61; --bad-bg:#5a2420; --bad-text:#ffd5cf;
+  --t-activo:#5bc8f5; --t-pasivo:#ff9468; --t-patrimonio:#b9a0ff; --t-ingreso:#55d6a3; --t-costo:#f4b73e; --t-gasto:#ff7a9a;
+  --paper:#e6efe0; --paper-ink:#14261c; --paper-rule:#a8c2ac; --paper-red:#b9473a; --paper-green:#1d6a46; --paper-blue:#1b5d7a; --paper-mute:#4d6a57;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  margin:0; padding-inline:16px; padding-block:8px 48px;
+  background-color:var(--bg); color:var(--text);
+  background-image:
+    radial-gradient(900px 500px at 85% -10%, #0f4458 0%, transparent 65%),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:auto,48px 48px,48px 48px;
+  font:16px/1.5 var(--font-body);
+}
+.wrap{max-width:720px;margin:0 auto}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance}
+p{margin:0}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.eyebrow{font:600 12px/1.3 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.ic{flex:none;display:block}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* Botones */
+.btn{font:700 16px/1.2 var(--font-body);border:0;border-radius:12px;padding:14px 20px;min-height:48px;cursor:pointer;background:var(--gold);color:var(--gold-ink)}
+.btn:hover{filter:brightness(1.07)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:transparent;color:var(--text);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--gold)}
+.btn.block{width:100%}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+
+/* Marcador */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding-block:10px 12px;background:linear-gradient(var(--bg) 80%,transparent)}
+.hud-item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-width:0}
+.hud-label{font:600 10px/1.3 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.hud-val{font:600 18px/1.25 var(--font-mono);font-variant-numeric:tabular-nums}
+.hud-item.urgent{border-color:var(--bad)}
+.hud-item.urgent .hud-val{color:var(--bad)}
+.bump{animation:bump .3s}
+
+/* Portada */
+.hero{display:flex;flex-direction:column;gap:14px;padding-block:22px 6px}
+.hero h1{font-weight:800;font-size:clamp(2.5rem,10vw,4.2rem);line-height:.98;letter-spacing:-.03em}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.lede{color:var(--muted);max-width:58ch}
+.routeart{width:100%;max-width:440px;height:auto}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.stack{display:flex;flex-direction:column;gap:18px;margin-top:14px}
+.field label,.field legend{display:block;font-weight:600;font-size:14px;margin-bottom:6px;padding:0}
+.field input[type=text]{width:100%;background:var(--bg-2);border:1.5px solid var(--line);color:var(--text);border-radius:10px;padding:12px 14px;font:inherit}
+.field input[type=text]::placeholder{color:var(--muted)}
+.err{color:var(--bad);font-size:13px;margin-top:6px}
+.levels{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border:0;padding:0;margin:0;min-width:0}
+.level{position:relative;display:block}
+.level input{position:absolute;opacity:0;inset:0}
+.lv-box{display:flex;flex-direction:column;gap:2px;height:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--bg-2)}
+.lv-box b{font-family:var(--font-display);font-size:1.05rem}
+.lv-box small{font:500 12px/1.4 var(--font-mono);color:var(--muted)}
+.level input:checked + .lv-box{border-color:var(--gold);background:var(--panel-2)}
+.level input:focus-visible + .lv-box{outline:3px solid var(--gold);outline-offset:2px}
+.check{display:flex;gap:10px;align-items:center;font-size:14px}
+.check input{width:18px;height:18px;accent-color:var(--gold)}
+.how{list-style:none;margin:0;padding:0;display:grid;gap:14px;grid-template-columns:1fr}
+.how li{display:flex;gap:12px;align-items:flex-start}
+.how .hi{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--panel-2);color:var(--gold)}
+.how b{display:block;font-family:var(--font-display);font-size:1.02rem}
+.how span{color:var(--muted);font-size:14px}
+
+/* Mapa de ruta */
+.screen-head{display:flex;flex-direction:column;gap:6px;margin-block:6px 16px}
+.screen-head h2{font-size:1.7rem;font-weight:800;letter-spacing:-.02em}
+.route{list-style:none;margin:0;padding:0}
+.stop{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr);gap:14px;padding-bottom:16px}
+.stop:not(:last-child)::before{content:"";position:absolute;left:23px;top:50px;bottom:-2px;border-left:2px dashed var(--line)}
+.node{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--bg-2);border:2px solid var(--line);color:var(--muted)}
+.state-current .node{border-color:var(--gold);color:var(--gold);background:var(--panel-2);box-shadow:0 0 0 6px rgba(244,183,62,.14)}
+.state-done .node{border-color:var(--good);color:var(--good)}
+.stop-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.state-locked .stop-card{background:transparent;border-style:dashed}
+.state-locked h3{color:var(--muted)}
+.stop-top{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.stop-n{font:600 11px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stop-card h3{font-size:1.15rem;font-weight:700}
+.pill{display:inline-block;font:600 11px/1.4 var(--font-mono);letter-spacing:.08em;padding:1px 8px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
+.pill.esf{color:var(--t-activo)}
+.pill.er{color:var(--t-ingreso)}
+.starline{display:flex;gap:2px;align-items:center}
+.st{color:var(--line);display:inline-flex}
+.st svg{fill:none}
+.st.on{color:var(--gold)}
+.st.on svg{fill:currentColor}
+.stars{display:flex;gap:6px;justify-content:center}
+.treasure .node{border-color:var(--gold);color:var(--gold)}
+.state-locked.treasure .node{border-color:var(--line);color:var(--muted)}
+
+/* Pregunta */
+.q-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-block:6px 12px}
+.q-head h2{font-size:1.2rem;font-weight:800;flex:1 1 180px}
+.dots{display:flex;gap:6px}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--line)}
+.dot.on{border-color:var(--gold);background:var(--gold)}
+.dot.ok{border-color:var(--good);background:var(--good)}
+.dot.no{border-color:var(--bad);background:var(--bad)}
+.timerrow{display:flex;align-items:center;gap:10px}
+.timerbar{position:relative;flex:1;height:12px;background:var(--bg-2);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+#qBar{position:absolute;inset:0 auto 0 0;width:100%;background:var(--gold);transition:width .2s linear}
+#qBar.low{background:var(--bad)}
+#qSecs{min-width:42px;text-align:right;font-weight:600}
+.fx{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.fx-note{display:inline-flex;gap:6px;align-items:center;font-size:13px;padding:3px 10px;border-radius:99px;background:var(--bad-bg);color:var(--bad-text);border:1px solid var(--bad)}
+.qcard{margin-top:14px;padding:18px;background:var(--panel);border:1px solid var(--line);border-radius:16px;display:flex;flex-direction:column;gap:14px}
+.q-kind{font:600 11px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+#qText{font-size:clamp(1.15rem,4.6vw,1.45rem);line-height:1.3;font-weight:700}
+.account-tag{font:600 1.1rem/1.35 var(--font-mono);padding:12px 14px;background:var(--paper);color:var(--paper-ink);border-radius:4px;border-left:5px double var(--paper-red)}
+.options{display:grid;gap:10px}
+.options.two,.options.cl{grid-template-columns:repeat(2,minmax(0,1fr))}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;width:100%;min-height:54px;padding:12px 14px;background:var(--bg-2);color:var(--text);border:1.5px solid var(--line);border-radius:12px;font:500 1rem/1.35 var(--font-body);cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--gold)}
+.opt:disabled{cursor:default}
+.opt-key{flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--panel-2);font:600 13px var(--font-mono)}
+.opt-tf{justify-content:center;font-weight:700;font-size:1.1rem}
+.opt small{display:block;font:500 11px var(--font-mono);color:var(--muted)}
+.chip-dot{flex:none;width:14px;height:14px;border-radius:50%;background:var(--chip)}
+.opt.is-correct{border-color:var(--good);background:var(--good-bg)}
+.opt.is-wrong{border-color:var(--bad);background:var(--bad-bg)}
+.options.done .opt:not(.is-correct):not(.is-wrong){opacity:.55}
+.options.fog .opt{filter:blur(7px);pointer-events:none;transition:filter .5s}
+.feedback{margin-top:14px;padding:16px;border-radius:14px;border:1.5px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:10px}
+.feedback.ok{border-color:var(--good)}
+.feedback.no{border-color:var(--bad)}
+.fb-head{font:800 1.3rem/1.2 var(--font-display)}
+.feedback.ok .fb-head{color:var(--good)}
+.feedback.no .fb-head{color:var(--bad)}
+.fb-sub{font:500 12px var(--font-mono);color:var(--muted)}
+
+/* Ventana de eventos */
+.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:var(--scrim);overflow-y:auto}
+.modal-card{width:min(100%,420px);background:var(--panel);border:1.5px solid var(--line);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center}
+.modal-card.trap{border-color:var(--bad)}
+.modal-card.shield{border-color:var(--good)}
+.modal-card.island{border-color:var(--gold)}
+.modal-icon{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:var(--bg-2)}
+.modal-card.trap .modal-icon{color:var(--bad)}
+.modal-card.shield .modal-icon{color:var(--good)}
+.modal-card.island .modal-icon{background:transparent;width:auto;height:auto}
+.modal-card h3{font-size:1.5rem;font-weight:800}
+.modal-card .btn{margin-top:8px;width:100%}
+.toasts{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 84px);z-index:60;display:flex;flex-direction:column;gap:8px;width:min(92vw,380px);pointer-events:none}
+.toast{display:flex;gap:12px;align-items:center;background:var(--gold);color:var(--gold-ink);padding:10px 14px;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.45);animation:toastIn .3s}
+.toast small{display:block;font:600 10px var(--font-mono);letter-spacing:.1em;text-transform:uppercase}
+.toast strong{font-family:var(--font-display);font-size:1.05rem}
+.toast.out{opacity:0;transition:opacity .3s}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:70}
+.confetti i{position:absolute;top:-16px;width:8px;height:14px;border-radius:2px;animation:fall linear forwards}
+
+/* Hoja de avance */
+.sheet{position:relative;background:var(--paper);color:var(--paper-ink);border-radius:8px;padding:22px 16px 26px 46px;box-shadow:0 18px 50px rgba(0,0,0,.5);overflow:hidden;margin-top:12px}
+.sheet::before,.sheet::after{content:"";position:absolute;top:0;bottom:0;background:var(--paper-red);opacity:.65}
+.sheet::before{left:30px;width:2px}
+.sheet::after{left:35px;width:1px}
+.sheet-top{display:flex;gap:14px;align-items:center}
+.seal{flex:none;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:var(--paper-green);color:var(--paper)}
+.sheet .kicker{font:600 11px var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--paper-red)}
+.sheet h2{font-weight:800;font-size:clamp(1.5rem,6vw,2.1rem);line-height:1.05;color:var(--paper-ink)}
+.sheet h3{font:700 .95rem var(--font-display);text-transform:uppercase;letter-spacing:.1em;border-bottom:2px solid var(--paper-ink);padding-bottom:4px;margin:24px 0 8px}
+.fields{display:grid;gap:10px 18px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:18px}
+.fld{border-bottom:1px solid var(--paper-ink);padding-bottom:2px;min-width:0}
+.fld small{display:block;font:600 10px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--paper-mute)}
+.fld b{font-weight:600;overflow-wrap:anywhere}
+.figs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
+.fig{padding:8px 0;border-bottom:1px dotted var(--paper-mute)}
+.fig small{display:block;font:600 10px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--paper-mute)}
+.fig .n{font:600 1.55rem/1.2 var(--font-mono);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fig .n.txt{font:800 1.25rem/1.2 var(--font-display)}
+.tblwrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{font:600 10px var(--font-mono);text-transform:uppercase;letter-spacing:.1em;text-align:left;color:var(--paper-mute);border-bottom:1px solid var(--paper-ink);padding:4px 8px 4px 0}
+.tbl td{padding:8px 8px 8px 0;border-bottom:1px solid var(--paper-rule);vertical-align:top}
+.tbl td.num{font-family:var(--font-mono);white-space:nowrap}
+.tbl tfoot td{border-top:1px solid var(--paper-ink);border-bottom:4px double var(--paper-ink);font-weight:700}
+.sheet .pill{font-size:10px;padding:0 6px;margin-left:6px}
+.sheet .pill.esf{color:var(--paper-blue)}
+.sheet .pill.er{color:var(--paper-green)}
+.sheet .st{color:var(--paper-rule)}
+.sheet .st.on{color:var(--paper-green)}
+.pend{color:var(--paper-red);font-weight:600}
+.meters{display:grid;gap:12px}
+.meter-l{display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:4px}
+.meter{position:relative;height:12px;border:1.5px solid var(--paper-ink)}
+.meter i{position:absolute;inset:0 auto 0 0;background:var(--paper-green)}
+.bgrid{list-style:none;margin:0;padding:0;display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.bdg{display:flex;gap:10px;align-items:flex-start;padding:8px;border:1.5px solid var(--paper-ink);border-radius:8px;min-width:0}
+.bdg .bi{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--paper-green);color:var(--paper)}
+.bdg b{display:block;font-size:13px;line-height:1.25}
+.bdg span{display:block;font-size:11.5px;line-height:1.3;color:var(--paper-mute)}
+.bdg.locked{border-style:dashed;border-color:var(--paper-rule);color:var(--paper-mute)}
+.bdg.locked .bi{background:transparent;border:1.5px dashed var(--paper-rule);color:var(--paper-rule)}
+.tlist{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:14px}
+.tlist li{display:flex;gap:8px;align-items:center}
+.rev{padding:10px 0;border-bottom:1px solid var(--paper-rule)}
+.rev small{display:block;font:600 10px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--paper-red)}
+.rev .rq{font-weight:600;margin-block:2px}
+.rev p{font-size:14px}
+.rev .ra{color:var(--paper-green);font-weight:600}
+.actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.actions p{color:var(--muted);font-size:14px}
+#copyBox{width:100%;min-height:160px;background:var(--bg-2);color:var(--text);border:1.5px solid var(--line);border-radius:10px;padding:10px;font:12px/1.5 var(--font-mono)}
+
+@keyframes bump{50%{transform:scale(1.08)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(-8px)}}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg)}}
+@keyframes pulse{50%{box-shadow:0 0 0 12px rgba(244,183,62,0)}}
+@keyframes seal{0%{transform:scale(.6) rotate(-12deg);opacity:0}70%{transform:scale(1.1) rotate(3deg)}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:no-preference){
+  .state-current .node{animation:pulse 1.8s infinite}
+  .hud-item.urgent .hud-val{animation:bump 1s infinite}
+  .seal{animation:seal .7s both}
+}
+@media (min-width:600px){
+  body{padding-inline:24px}
+  .how{grid-template-columns:1fr 1fr}
+  .sheet{padding:28px 28px 30px 58px}
+  .sheet::before{left:38px}
+  .sheet::after{left:43px}
+  .figs{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .actions{flex-direction:row;flex-wrap:wrap;align-items:center}
+  .actions p{flex-basis:100%}
+}
+</style>
+
+<div class="wrap">
+
+  <div class="hud" id="hud" hidden>
+    <div class="hud-item"><div class="hud-label">Doblones</div><div class="hud-val" id="hScore">0</div></div>
+    <div class="hud-item"><div class="hud-label">Racha</div><div class="hud-val" id="hStreak">×0</div></div>
+    <div class="hud-item"><div class="hud-label">Escudos</div><div class="hud-val" id="hShield">0</div></div>
+    <div class="hud-item" id="hClockBox"><div class="hud-label">Reloj</div><div class="hud-val" id="hClock">00:00</div></div>
+  </div>
+
+  <!-- PORTADA -->
+  <section id="screen-intro">
+    <div class="hero">
+      <p class="eyebrow">Juego de repaso · Contabilidad básica</p>
+      <h1>Tesoro del <em>Libro Mayor</em></h1>
+      <p class="lede">Un capitán contable escondió su tesoro y repartió el mapa en 8 islas. Responde sobre activos, pasivos, patrimonio, ingresos, costos, gastos y los dos estados financieros para reunir todos los fragmentos.</p>
+      <svg class="routeart" viewBox="0 0 360 100" aria-hidden="true" role="presentation">
+        <path d="M12 74 C 48 14, 88 96, 128 50 S 208 8, 244 56 S 306 92, 338 28" fill="none" stroke="#f4b73e" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="1 8"/>
+        <circle cx="12" cy="74" r="6" fill="#07202b" stroke="#f4b73e" stroke-width="2"/>
+        <circle cx="128" cy="50" r="6" fill="#07202b" stroke="#5bc8f5" stroke-width="2"/>
+        <circle cx="244" cy="56" r="6" fill="#07202b" stroke="#55d6a3" stroke-width="2"/>
+        <path d="M330 20l16 16M346 20l-16 16" stroke="#ff6f61" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="stack">
+      <div class="panel stack" style="margin-top:0">
+        <div class="field">
+          <label for="playerName">Tu nombre (aparecerá en tu hoja de avance)</label>
+          <input id="playerName" type="text" maxlength="40" autocomplete="name" placeholder="Nombre y apellido">
+          <p class="err" id="nameErr" hidden>Escribe tu nombre para poder zarpar.</p>
+        </div>
+        <div class="lv-box">
+          <b>Reglas del tiempo</b>
+          <small>15 segundos por pregunta · Reloj general de 7:00</small>
+        </div>
+        <label class="check"><input type="checkbox" id="soundToggle"> Activar sonidos</label>
+        <button class="btn block" id="startBtn" type="button">Zarpar hacia el tesoro</button>
+      </div>
+
+      <ul class="how panel" id="howList"></ul>
+      <p class="muted small">ESF = Estado de Situación Financiera · ER = Estado de Resultados. Cada acierto da 100 doblones, más bono por rapidez y por racha.</p>
+    </div>
+  </section>
+
+  <!-- MAPA -->
+  <section id="screen-map" hidden>
+    <div class="screen-head">
+      <p class="eyebrow">Tu ruta al tesoro</p>
+      <h2 id="mapSub">0 de 8 islas completadas</h2>
+      <p class="muted small">ESF = Estado de Situación Financiera · ER = Estado de Resultados. El reloj solo corre mientras respondes.</p>
+    </div>
+    <ol class="route" id="route"></ol>
+    <div class="row"><button class="btn ghost" id="finishBtn" type="button">Terminar y ver mi hoja</button></div>
+  </section>
+
+  <!-- PREGUNTA -->
+  <section id="screen-quiz" hidden>
+    <div class="q-head">
+      <span class="pill" id="qPill">ESF</span>
+      <h2 id="qStation">Isla</h2>
+      <div class="dots" id="qDots" aria-hidden="true"></div>
+    </div>
+    <div class="timerrow">
+      <div class="timerbar"><div id="qBar"></div></div>
+      <span id="qSecs" class="mono">30 s</span>
+    </div>
+    <div class="fx" id="fxNotes"></div>
+    <article class="qcard">
+      <p class="q-kind" id="qKind"></p>
+      <h3 id="qText"></h3>
+      <div class="account-tag" id="qAccount" hidden></div>
+      <div class="options" id="qOptions"></div>
+    </article>
+    <div class="feedback" id="feedback" role="status" aria-live="polite" hidden>
+      <div class="fb-head" id="fbHead"></div>
+      <div class="fb-sub" id="fbSub"></div>
+      <div id="fbBody"></div>
+      <button class="btn" id="nextBtn" type="button">Continuar</button>
+    </div>
+  </section>
+
+  <!-- HOJA DE AVANCE -->
+  <section id="screen-sheet" hidden>
+    <div id="sheetBody"></div>
+    <div class="actions">
+      <button class="btn" id="copyBtn" type="button">Copiar mi hoja como texto</button>
+      <button class="btn ghost" id="againBtn" type="button">Jugar de nuevo</button>
+      <p id="copyMsg" role="status">Para entregarla, copia el texto o toma una captura de pantalla de esta hoja.</p>
+      <textarea id="copyBox" readonly hidden aria-label="Texto de tu hoja de avance"></textarea>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-card" id="modalCard">
+    <div class="modal-icon" id="modalIcon"></div>
+    <p class="eyebrow" id="modalEyebrow"></p>
+    <h3 id="modalTitle"></h3>
+    <p id="modalText" class="muted"></p>
+    <button class="btn" id="modalBtn" type="button">Continuar</button>
+  </div>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+const $ = id => document.getElementById(id);
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- Iconos ---------- */
+const ICONS = {
+  coin:'<circle cx="12" cy="12" r="9"/><path d="M14.5 9.2c-.5-.9-1.4-1.3-2.6-1.3-1.5 0-2.5.8-2.5 1.9 0 2.8 5.3 1.3 5.3 4.1 0 1.2-1.100 2-2.700 2-1.300 0-2.400-.5-2.900-1.500M12 6v2M12 16v2"/>',
+  anchor:'<circle cx="12" cy="5" r="2"/><path d="M12 7v14M8 11h8M5 14c0 4 3 7 7 7s7-3 7-7"/>',
+  scales:'<path d="M12 4v16M7 20h10M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/>',
+  trendup:'<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',
+  cube:'<path d="M4 8l8-4 8 4v8l-8 4-8-4zM4 8l8 4 8-4M12 12v8"/>',
+  trenddown:'<path d="M3 7l6 6 4-4 8 8M21 11v6h-6"/>',
+  book:'<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM8 8h8M8 12h8"/>',
+  bars:'<path d="M5 20V11M12 20V4M19 20v-6"/>',
+  chest:'<path d="M4 10a8 8 0 0 1 16 0v9H4zM4 13h16M10 13v3h4v-3"/>',
+  hourglass:'<path d="M7 3h10M7 21h10M8 3c0 5 4 6 4 9s-4 4-4 9M16 3c0 5-4 6-4 9s4 4 4 9"/>',
+  shield:'<path d="M12 3l7 3v6c0 4.500-3 7.500-7 9-4-1.500-7-4.500-7-9V6z"/>',
+  star:'<path d="M12 3.500l2.600 5.400 5.900.8-4.300 4.100 1 5.900L12 17l-5.200 2.700 1-5.900L3.500 9.700l5.900-.8z"/>',
+  bolt:'<path d="M13 3L5 13.500h6L10 21l8-10.500h-6z"/>',
+  eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  flame:'<path d="M12 3c1 4 5 5.500 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/>',
+  wave:'<path d="M2 9c3-3 5 3 8 0s5 3 8 0 4 2 4 2M2 15c3-3 5 3 8 0s5 3 8 0 4 2 4 2"/>',
+  skull:'<path d="M12 3a7 7 0 0 0-4 12.700V19h8v-3.300A7 7 0 0 0 12 3z"/><circle cx="9.500" cy="11" r="1.300"/><circle cx="14.500" cy="11" r="1.300"/>',
+  storm:'<path d="M7 15a4 4 0 0 1 .5-8 5 5 0 0 1 9.500 1.500A3.500 3.500 0 0 1 17 15z"/><path d="M12 13l-2 4h3l-1 4"/>',
+  fog:'<path d="M3 8h12M6 12h15M3 16h11M9 4h8M7 20h12"/>',
+  whirl:'<path d="M12 12a2 2 0 1 1 2 2 4 4 0 1 1-4-4 6 6 0 1 1 6 6"/>',
+  crown:'<path d="M3 18h18l-1.500-10-5 4L12 5 9.500 12l-5-4z"/>',
+  compass:'<circle cx="12" cy="12" r="9"/><path d="M15.500 8.500l-2 5-5 2 2-5z"/>',
+  lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'
+};
+const ic = (n, s) => '<svg class="ic" width="'+(s||24)+'" height="'+(s||24)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[n]+'</svg>';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = s => { s = Math.max(0, Math.ceil(s)); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); };
+const stars = (n, size) => { let h=''; for(let i=0;i<3;i++) h += '<span class="st'+(i<n?' on':'')+'">'+ic('star',size)+'</span>'; return h; };
+
+/* ---------- Contenido ---------- */
+const STMT = { ESF:'Estado de Situación Financiera', ER:'Estado de Resultados' };
+const TYPES = [
+  {id:'activo',name:'Activo',stmt:'ESF',color:'var(--t-activo)'},
+  {id:'pasivo',name:'Pasivo',stmt:'ESF',color:'var(--t-pasivo)'},
+  {id:'patrimonio',name:'Patrimonio',stmt:'ESF',color:'var(--t-patrimonio)'},
+  {id:'ingreso',name:'Ingreso',stmt:'ER',color:'var(--t-ingreso)'},
+  {id:'costo',name:'Costo',stmt:'ER',color:'var(--t-costo)'},
+  {id:'gasto',name:'Gasto',stmt:'ER',color:'var(--t-gasto)'}
+];
+const LEVELS = { unico:{name:'Único',clock:420,q:15} };
+/* t: mc (la primera opción es la correcta) | tf | cl (clasificar cuenta) */
+const STATIONS = [
+  {name:'Isla de los Activos',stmt:'ESF',icon:'coin',blurb:'Lo que la empresa tiene y controla',qs:[
+    {t:'mc',q:'¿Cuál es la mejor definición de activo?',o:['Un recurso controlado por la empresa, del que espera obtener beneficios económicos futuros','Una obligación presente con proveedores o bancos','El dinero que aportan los socios al crear la empresa','Todo el dinero que la empresa gasta en el mes'],x:'Activo = recurso controlado + beneficios económicos futuros. Las obligaciones son pasivos y los aportes de los socios son patrimonio.'},
+    {t:'cl',acct:'Cuentas por cobrar a clientes',c:'activo',x:'Es un derecho de cobro: la empresa espera recibir dinero en el futuro.'},
+    {t:'mc',q:'¿Cuál de estas cuentas es un activo corriente?',o:['Inventario de mercaderías','Préstamo bancario a 5 años','Capital social','Gasto de arriendo'],x:'El inventario se espera vender en menos de 12 meses. El préstamo es pasivo, el capital es patrimonio y el arriendo es gasto.'}
+  ]},
+  {name:'Isla de los Pasivos',stmt:'ESF',icon:'anchor',blurb:'Lo que la empresa debe a terceros',qs:[
+    {t:'mc',q:'Un pasivo es…',o:['Una obligación presente que, al cancelarse, implica entregar recursos','Un bien que la empresa puede vender','El resultado de restar los gastos a los ingresos','El capital que aportan los dueños'],x:'Pasivo = deuda u obligación presente nacida de hechos pasados. Se paga con recursos de la empresa.'},
+    {t:'cl',acct:'Proveedores (cuentas por pagar)',c:'pasivo',x:'La empresa recibió mercadería o servicios y todavía debe pagarlos.'},
+    {t:'tf',q:'Un préstamo bancario que se pagará en 3 años se presenta como pasivo no corriente.',a:true,x:'Si vence en más de 12 meses es no corriente; la parte que vence dentro del año se presenta como corriente.'}
+  ]},
+  {name:'Bahía del Patrimonio',stmt:'ESF',icon:'scales',blurb:'Lo que pertenece a los dueños',qs:[
+    {t:'mc',q:'¿Cuál es la ecuación contable básica?',o:['Activo = Pasivo + Patrimonio','Activo = Ingresos − Gastos','Patrimonio = Activo + Pasivo','Pasivo = Activo + Patrimonio'],x:'Lo que la empresa tiene (activo) se financia con deudas (pasivo) o con aportes y utilidades de los dueños (patrimonio).'},
+    {t:'cl',acct:'Capital social (aportes de los socios)',c:'patrimonio',x:'Es el aporte de los dueños y forma parte del patrimonio.'},
+    {t:'mc',q:'Una empresa tiene activos por $50.000 y pasivos por $20.000. ¿Cuánto es su patrimonio?',o:['$30.000','$70.000','$20.000','$50.000'],x:'Patrimonio = Activo − Pasivo = 50.000 − 20.000 = 30.000.'}
+  ]},
+  {name:'Cabo de los Ingresos',stmt:'ER',icon:'trendup',blurb:'Lo que la empresa gana por su actividad',qs:[
+    {t:'mc',q:'¿Cuál es un ingreso del periodo?',o:['Las ventas de mercaderías','El préstamo recibido del banco','El aporte adicional de un socio','El cobro de una factura vendida el mes pasado'],x:'Las ventas son ingreso. El préstamo es pasivo, el aporte es patrimonio, y cobrar una factura anterior solo cambia «cuentas por cobrar» por caja: el ingreso ya se reconoció al vender.'},
+    {t:'cl',acct:'Ingresos por servicios prestados',c:'ingreso',x:'Es una ganancia de la actividad ordinaria: aumenta el patrimonio y se presenta en el Estado de Resultados.'},
+    {t:'tf',q:'Recibir un préstamo del banco es un ingreso del periodo.',a:false,x:'Un préstamo crea un pasivo, porque hay que devolverlo. No es ingreso.'}
+  ]},
+  {name:'Arrecife de los Costos',stmt:'ER',icon:'cube',blurb:'Lo que cuesta producir o comprar lo que se vende',qs:[
+    {t:'mc',q:'Los costos son…',o:['Recursos sacrificados para producir bienes o prestar servicios que se venden','Pagos de la administración general de la oficina','Aportes que realizan los socios','Deudas pendientes con proveedores'],x:'Costo = sacrificio ligado directamente a producir o adquirir lo que se vende. Los pagos de la oficina suelen ser gastos.'},
+    {t:'cl',acct:'Costo de ventas (costo de la mercadería vendida)',c:'costo',x:'Es lo que costó la mercadería que ya se vendió. Se resta de las ventas para hallar la utilidad bruta.'},
+    {t:'mc',q:'En una fábrica, ¿cuál es un costo de producción?',o:['Mano de obra directa del personal de planta','Sueldo del gerente general','Publicidad en redes sociales','Intereses del préstamo bancario'],x:'La mano de obra directa participa en la elaboración del producto. El gerente es gasto administrativo, la publicidad es gasto de venta y los intereses son gasto financiero.'}
+  ]},
+  {name:'Caverna de los Gastos',stmt:'ER',icon:'trenddown',blurb:'Lo que consume operar el negocio',qs:[
+    {t:'mc',q:'Un gasto es…',o:['Un consumo de recursos para operar el negocio, que reduce el resultado del periodo','Un recurso que dará beneficios durante varios años','Un aporte de los socios','Una deuda que vence en más de un año'],x:'Los gastos reducen la utilidad del periodo. Lo que dará beneficios por años es activo y las deudas son pasivos.'},
+    {t:'cl',acct:'Arriendo de la oficina administrativa',c:'gasto',x:'Es un gasto administrativo: se consume en el periodo y no se relaciona directamente con producir lo que se vende.'},
+    {t:'mc',q:'Compras un computador para la oficina que usarás durante 5 años. ¿Cómo lo registras al comprarlo?',o:['Como activo (propiedad, planta y equipo)','Como gasto de suministros','Como costo de ventas','Como pasivo'],x:'Dará beneficios por varios años, así que es activo. Su desgaste se reconoce después como gasto de depreciación.'}
+  ]},
+  {name:'Faro del Balance',stmt:'ESF',icon:'book',blurb:'La fotografía de la empresa a una fecha',qs:[
+    {t:'mc',q:'El Estado de Situación Financiera muestra…',o:['Activos, pasivos y patrimonio a una fecha determinada','Ingresos, costos y gastos de un periodo','Solo el dinero disponible en caja y bancos','Únicamente las deudas con terceros'],x:'Es una fotografía a una fecha, por ejemplo al 31 de diciembre. El que mide un periodo es el Estado de Resultados.'},
+    {t:'mc',q:'¿Cuál de estas cuentas NO aparece en el Estado de Situación Financiera?',o:['Ventas','Caja y bancos','Proveedores','Capital social'],x:'Ventas es un ingreso y se presenta en el Estado de Resultados.'},
+    {t:'mc',q:'¿Dónde se presenta la «Depreciación acumulada de equipos»?',o:['En el Estado de Situación Financiera, restando al activo','En el Estado de Resultados, como ingreso','En el patrimonio, como capital','En ningún estado financiero'],x:'La depreciación acumulada reduce el valor del activo en el ESF. El gasto por depreciación del periodo es el que va al Estado de Resultados.'}
+  ]},
+  {name:'Cofre del Estado de Resultados',stmt:'ER',icon:'bars',blurb:'El desempeño de la empresa en un periodo',qs:[
+    {t:'mc',q:'El Estado de Resultados muestra…',o:['Ingresos, costos y gastos de un periodo para obtener la utilidad o pérdida','Activos, pasivos y patrimonio a una fecha','Solo los aportes de los socios','Las deudas pendientes con proveedores'],x:'Mide el desempeño durante un periodo: mes, trimestre o año.'},
+    {t:'mc',q:'¿Cómo se calcula la utilidad bruta?',o:['Ventas − Costo de ventas','Ventas − Gastos de administración','Activos − Pasivos','Ingresos − Pasivos'],x:'Utilidad bruta = Ventas − Costo de ventas. Los gastos operativos se restan después.'},
+    {t:'mc',q:'Ventas $80.000, costo de ventas $50.000 y gastos operativos $18.000. ¿Cuánto es la utilidad operativa?',o:['$12.000','$30.000','$62.000','$18.000'],x:'80.000 − 50.000 = 30.000 de utilidad bruta; 30.000 − 18.000 = 12.000 de utilidad operativa.'}
+  ]}
+];
+const TOTAL_Q = STATIONS.length * 3;
+
+const BADGES = [
+  {id:'primer',name:'Primer Puerto',icon:'anchor',desc:'Completa tu primera isla.'},
+  {id:'ojo',name:'Ojo de Águila',icon:'eye',desc:'3 aciertos seguidos.'},
+  {id:'relampago',name:'Relámpago',icon:'bolt',desc:'Acierta en menos de 5 segundos.'},
+  {id:'oro',name:'Racha de Oro',icon:'flame',desc:'6 aciertos seguidos.'},
+  {id:'escudo',name:'Escudo Firme',icon:'shield',desc:'Bloquea una trampa con un escudo.'},
+  {id:'lobo',name:'Lobo de Mar',icon:'wave',desc:'Sobrevive a 3 trampas.'},
+  {id:'perfecta',name:'Isla Perfecta',icon:'star',desc:'3 de 3 en una isla.'},
+  {id:'balance',name:'Dueño del Balance',icon:'scales',desc:'10 de 12 aciertos en las islas del ESF.'},
+  {id:'resultados',name:'Señor de Resultados',icon:'bars',desc:'10 de 12 aciertos en las islas del ER.'},
+  {id:'tiempo',name:'Capitán del Tiempo',icon:'hourglass',desc:'Termina con 30 % del reloj sobrando.'},
+  {id:'tesoro',name:'Tesoro Encontrado',icon:'chest',desc:'Completa las 8 islas.'},
+  {id:'leyenda',name:'Mapa Impecable',icon:'crown',desc:'24 de 24 aciertos.'}
+];
+
+const TRAPS = [
+  {id:'tormenta',name:'Tormenta en alta mar',icon:'storm',text:'El temporal te hace perder 20 segundos del reloj.',apply(){ state.clock = Math.max(0, state.clock-20); }},
+  {id:'contrabandista',name:'Contrabandista',icon:'skull',text:'Un contrabandista se lleva 60 doblones de tu bolsa.',apply(){ state.score = Math.max(0, state.score-60); }},
+  {id:'niebla',name:'Niebla espesa',icon:'fog',text:'En la próxima pregunta las opciones se verán borrosas durante 5 segundos.',apply(){ state.fx.fog = true; }},
+  {id:'marea',name:'Marea alta',icon:'wave',text:'La próxima pregunta tendrá la mitad del tiempo.',apply(){ state.fx.half = true; }},
+  {id:'remolino',name:'Remolino',icon:'whirl',text:'La corriente te arrastra: tu racha vuelve a cero.',apply(){ state.streak = 0; }}
+];
+
+/* ---------- Portada: cómo se juega ---------- */
+$('howList').innerHTML = [
+  ['hourglass','Controla el tiempo','Hay un reloj general y una cuenta regresiva por pregunta. Mientras lees la explicación, el reloj se detiene.'],
+  ['storm','Cuidado con las trampas','Entre pregunta y pregunta pueden aparecer tormentas, contrabandistas o niebla. Con 3 aciertos seguidos ganas un escudo.'],
+  ['star','Desbloquea 12 insignias','Por rapidez, rachas, islas perfectas y dominio de cada estado financiero.'],
+  ['book','Recibe tu hoja de avance','Al final: puntaje, aciertos por isla y los conceptos que debes repasar.']
+].map(r => '<li><span class="hi">'+ic(r[0],20)+'</span><div><b>'+r[1]+'</b><span>'+r[2]+'</span></div></li>').join('');
+
+/* ---------- Estado ---------- */
+let state = null;
+let fogTimer = null, finishArm = null;
+const newState = (name, lv, sound) => ({
+  name, levelKey: lv, level: LEVELS[lv], sound,
+  clock: LEVELS[lv].clock, startClock: LEVELS[lv].clock,
+  qLimit: LEVELS[lv].q, qLeft: LEVELS[lv].q,
+  score:0, streak:0, bestStreak:0, shield:0, blocked:0, hit:0,
+  si:0, qi:0, cur:null, phase:'intro', reason:null, modalCb:null,
+  results: STATIONS.map(() => ({correct:0, answers:[], done:false})),
+  missed:[], traps:[], badges:new Set(), fx:{fog:false,half:false}
+});
+
+/* ---------- Sonido ---------- */
+let actx = null;
+function beep(seq){
+  if(!state || !state.sound) return;
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    seq.forEach(n => {
+      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + n[2];
+      o.type = n[3] || 'triangle'; o.frequency.value = n[0];
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.14, t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+n[1]);
+      o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+n[1]+0.05);
+    });
+  }catch(e){}
+}
+const SND = {
+  ok:[[660,.1,0],[880,.16,.1]],
+  no:[[220,.22,0,'sawtooth'],[165,.28,.16,'sawtooth']],
+  trap:[[300,.12,0,'square'],[200,.12,.12,'square'],[120,.25,.24,'square']],
+  shield:[[520,.1,0],[780,.2,.1]],
+  badge:[[660,.1,0],[880,.12,.1],[1320,.22,.22]],
+  island:[[523,.12,0],[659,.12,.12],[784,.24,.24]],
+  win:[[523,.14,0],[659,.14,.14],[784,.14,.28],[1047,.4,.42]],
+  lose:[[330,.2,0],[262,.2,.2],[196,.4,.4]]
+};
+
+/* ---------- Pantallas y marcador ---------- */
+function show(name){
+  ['intro','map','quiz','sheet'].forEach(s => { $('screen-'+s).hidden = (s !== name); });
+  $('hud').hidden = !(name === 'map' || name === 'quiz');
+  window.scrollTo(0,0);
+}
+function renderHud(){
+  if(!state) return;
+  const s = $('hScore');
+  if(s.textContent !== String(state.score)){ s.textContent = state.score; if(!reduce){ s.classList.remove('bump'); void s.offsetWidth; s.classList.add('bump'); } }
+  $('hStreak').textContent = '×' + state.streak;
+  $('hShield').textContent = state.shield;
+  $('hClock').textContent = fmt(state.clock);
+  $('hClockBox').classList.toggle('urgent', state.clock <= 60);
+}
+function renderQTimer(){
+  const f = Math.max(0, state.qLeft) / state.qLimit;
+  $('qBar').style.width = (f*100) + '%';
+  $('qBar').classList.toggle('low', f < 0.3);
+  $('qSecs').textContent = Math.ceil(Math.max(0,state.qLeft)) + ' s';
+}
+function toast(icon, small, strong){
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = ic(icon,26) + '<div><small>'+esc(small)+'</small><strong>'+esc(strong)+'</strong></div>';
+  $('toasts').appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, 3000);
+}
+function award(id, silent){
+  if(state.badges.has(id)) return;
+  state.badges.add(id);
+  if(silent) return;
+  const b = BADGES.find(x => x.id === id);
+  toast(b.icon, 'Insignia desbloqueada', b.name);
+  beep(SND.badge);
+}
+function openModal(o){
+  state.phase = 'modal';
+  $('modalCard').className = 'modal-card ' + (o.tone || '');
+  $('modalIcon').innerHTML = o.iconHtml || '';
+  $('modalEyebrow').textContent = o.eyebrow || '';
+  $('modalTitle').textContent = o.title;
+  $('modalText').innerHTML = o.text || '';
+  $('modalBtn').textContent = o.btn || 'Continuar';
+  state.modalCb = o.onClose || null;
+  $('modal').hidden = false;
+  $('modalBtn').focus();
+}
+$('modalBtn').addEventListener('click', () => {
+  $('modal').hidden = true;
+  const cb = state.modalCb; state.modalCb = null;
+  if(cb) cb();
+});
+
+/* ---------- Reloj ---------- */
+let last = performance.now();
+setInterval(() => {
+  const now = performance.now();
+  let dt = (now - last) / 1000; last = now;
+  if(dt > 1) dt = 1;
+  tick(dt);
+}, 200);
+function tick(dt){
+  if(!state || state.phase !== 'question') return;
+  state.clock -= dt; state.qLeft -= dt;
+  if(state.clock <= 0){ state.clock = 0; renderHud(); renderQTimer(); endGame('time'); return; }
+  if(state.qLeft <= 0){ state.qLeft = 0; renderHud(); renderQTimer(); answer(-1); return; }
+  renderHud(); renderQTimer();
+}
+
+/* ---------- Mapa ---------- */
+function showMap(){
+  state.phase = 'map';
+  const done = state.results.filter(r => r.done).length;
+  $('mapSub').textContent = done + ' de ' + STATIONS.length + ' islas completadas';
+  let h = '';
+  STATIONS.forEach((S,i) => {
+    const r = state.results[i];
+    const st = r.done ? 'done' : (i === state.si ? 'current' : 'locked');
+    let body;
+    if(st === 'done') body = '<div class="starline" aria-label="'+r.correct+' de 3 estrellas">'+stars(r.correct,18)+'<span class="muted small" style="margin-left:8px">'+r.correct+'/3 aciertos</span></div>';
+    else if(st === 'current') body = '<p class="muted small">3 preguntas</p><button class="btn" type="button" data-go="'+i+'">Zarpar a esta isla</button>';
+    else body = '<p class="muted small">Se desbloquea al terminar la isla anterior.</p>';
+    h += '<li class="stop state-'+st+'"><span class="node">'+ic(st==='locked'?'lock':S.icon,24)+'</span>'
+      + '<div class="stop-card"><div class="stop-top"><span class="stop-n">Isla '+(i+1)+' de '+STATIONS.length+'</span><span class="pill '+S.stmt.toLowerCase()+'">'+S.stmt+'</span></div>'
+      + '<h3>'+S.name+'</h3><p class="muted small">'+S.blurb+'</p>'+body+'</div></li>';
+  });
+  const allDone = done === STATIONS.length;
+  h += '<li class="stop treasure state-'+(allDone?'current':'locked')+'"><span class="node">'+ic('chest',24)+'</span><div class="stop-card"><h3>La Isla del Tesoro</h3><p class="muted small">Se abre cuando reúnas los 8 fragmentos del mapa.</p></div></li>';
+  $('route').innerHTML = h;
+  $('route').querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => startStation(+b.dataset.go)));
+  show('map'); renderHud();
+  const cur = $('route').querySelector('.state-current');
+  if(cur && state.si > 1) cur.scrollIntoView({block:'center', behavior: reduce ? 'auto' : 'smooth'});
+}
+function startStation(i){ state.si = i; state.qi = 0; showQuestion(); }
+
+/* ---------- Preguntas ---------- */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function prepare(q){
+  if(q.t === 'mc'){
+    const opts = shuffle(q.o.map((t,i) => ({t, ok:i===0})));
+    return Object.assign({}, q, {opts, correctIdx: opts.findIndex(o => o.ok)});
+  }
+  if(q.t === 'tf') return Object.assign({}, q, {opts:[{t:'Verdadero'},{t:'Falso'}], correctIdx: q.a ? 0 : 1});
+  return Object.assign({}, q, {opts: TYPES.map(t => ({t:t.name, type:t})), correctIdx: TYPES.findIndex(t => t.id === q.c)});
+}
+function showQuestion(){
+  const S = STATIONS[state.si];
+  const q = prepare(S.qs[state.qi]);
+  state.cur = q;
+  const fog = state.fx.fog, half = state.fx.half;
+  state.fx = {fog:false, half:false};
+  state.qLimit = half ? Math.ceil(state.level.q/2) : state.level.q;
+  state.qLeft = state.qLimit;
+
+  $('qPill').textContent = S.stmt; $('qPill').className = 'pill ' + S.stmt.toLowerCase();
+  $('qStation').textContent = S.name;
+  const ans = state.results[state.si].answers;
+  $('qDots').innerHTML = [0,1,2].map(i => '<span class="dot '+(i<ans.length ? (ans[i].correct?'ok':'no') : (i===state.qi?'on':''))+'"></span>').join('');
+  $('qKind').textContent = q.t === 'mc' ? 'Elige la respuesta' : (q.t === 'tf' ? 'Verdadero o falso' : 'Clasifica la cuenta');
+  $('qText').textContent = q.t === 'cl' ? '¿Qué tipo de cuenta es?' : q.q;
+  const acc = $('qAccount');
+  if(q.t === 'cl'){ acc.hidden = false; acc.textContent = q.acct; } else acc.hidden = true;
+
+  const box = $('qOptions');
+  box.className = 'options' + (q.t==='tf' ? ' two' : '') + (q.t==='cl' ? ' cl' : '') + (fog ? ' fog' : '');
+  box.innerHTML = q.opts.map((o,i) => {
+    if(q.t === 'cl') return '<button class="opt" type="button" data-i="'+i+'" style="--chip:'+o.type.color+'"><span class="chip-dot"></span><span><b>'+o.t+'</b><small>'+o.type.stmt+'</small></span></button>';
+    if(q.t === 'tf') return '<button class="opt opt-tf" type="button" data-i="'+i+'">'+o.t+'</button>';
+    return '<button class="opt" type="button" data-i="'+i+'"><span class="opt-key">'+'ABCD'[i]+'</span><span>'+esc(o.t)+'</span></button>';
+  }).join('');
+  box.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => answer(+b.dataset.i)));
+
+  let notes = '';
+  if(fog) notes += '<span class="fx-note">'+ic('fog',14)+'Niebla: opciones borrosas 5 s</span>';
+  if(half) notes += '<span class="fx-note">'+ic('wave',14)+'Marea alta: tiempo a la mitad</span>';
+  $('fxNotes').innerHTML = notes;
+  $('feedback').hidden = true;
+
+  clearTimeout(fogTimer);
+  if(fog) fogTimer = setTimeout(() => box.classList.remove('fog'), 5000);
+
+  state.phase = 'question';
+  show('quiz'); renderHud(); renderQTimer();
+}
+
+function answer(idx){
+  if(!state || state.phase !== 'question') return;
+  state.phase = 'feedback';
+  clearTimeout(fogTimer);
+  const q = state.cur, S = STATIONS[state.si], r = state.results[state.si];
+  const used = state.qLimit - state.qLeft;
+  const ok = idx === q.correctIdx;
+  let gain = 0, speed = 0, sb = 0;
+  if(ok){
+    state.streak++; state.bestStreak = Math.max(state.bestStreak, state.streak);
+    speed = Math.round(50 * Math.max(0, state.qLeft) / state.qLimit);
+    sb = Math.min(state.streak-1, 5) * 10;
+    gain = 100 + speed + sb;
+    state.score += gain; r.correct++;
+    if(used < 5) award('relampago');
+    if(state.streak >= 3) award('ojo');
+    if(state.streak >= 6) award('oro');
+    if(state.streak % 3 === 0 && state.shield < 2){ state.shield++; toast('shield','Racha de '+state.streak,'Ganaste un escudo'); beep(SND.shield); }
+    else beep(SND.ok);
+  } else {
+    state.streak = 0; beep(SND.no);
+  }
+  r.answers.push({correct:ok});
+
+  const right = q.opts[q.correctIdx];
+  const rightText = q.t === 'cl' ? right.t + ' · ' + STMT[right.type.stmt] : right.t;
+  if(!ok) state.missed.push({station:S.name, prompt: q.t === 'cl' ? 'Clasificar la cuenta «'+q.acct+'»' : q.q, answer:rightText, x:q.x, timeout: idx < 0});
+
+  const btns = $('qOptions').querySelectorAll('.opt');
+  $('qOptions').classList.remove('fog'); $('qOptions').classList.add('done');
+  btns.forEach((b,i) => { b.disabled = true; if(i === q.correctIdx) b.classList.add('is-correct'); else if(i === idx) b.classList.add('is-wrong'); });
+  const dots = $('qDots').querySelectorAll('.dot');
+  if(dots[state.qi]) dots[state.qi].className = 'dot ' + (ok ? 'ok' : 'no');
+
+  const fb = $('feedback');
+  fb.className = 'feedback ' + (ok ? 'ok' : 'no');
+  $('fbHead').textContent = ok ? '¡Correcto! +' + gain + ' doblones' : (idx < 0 ? 'Se acabó el tiempo' : 'No es esa');
+  $('fbSub').textContent = ok ? '100 base · +' + speed + ' rapidez · +' + sb + ' racha' : 'La racha vuelve a cero';
+  $('fbBody').innerHTML = (ok ? '' : '<p>Respuesta correcta: <b>'+esc(rightText)+'</b></p>') + '<p class="muted">'+esc(q.x)+'</p>';
+  $('nextBtn').textContent = state.qi >= 2 ? 'Terminar la isla' : 'Continuar';
+  fb.hidden = false;
+  renderHud();
+  $('nextBtn').focus({preventScroll:true});
+  fb.scrollIntoView({block:'nearest', behavior: reduce ? 'auto' : 'smooth'});
+}
+
+$('nextBtn').addEventListener('click', () => {
+  if(state.phase !== 'feedback') return;
+  $('feedback').hidden = true;
+  state.qi++;
+  if(state.qi >= 3){ completeStation(); return; }
+  if(state.qi === 2 && state.si > 0 && Math.random() < 0.65){ triggerTrap(); return; }
+  showQuestion();
+});
+
+/* ---------- Trampas ---------- */
+function triggerTrap(){
+  state.phase = 'modal';
+  const t = TRAPS[Math.floor(Math.random()*TRAPS.length)];
+  if(state.shield > 0){
+    state.shield--; state.blocked++;
+    state.traps.push({name:t.name, icon:t.icon, blocked:true});
+    renderHud(); award('escudo'); beep(SND.shield);
+    openModal({tone:'shield', iconHtml:ic('shield',34), eyebrow:'Trampa evitada', title:t.name,
+      text:'Tu escudo absorbió el golpe. Te quedan '+state.shield+(state.shield===1?' escudo.':' escudos.'), btn:'Seguir navegando', onClose:resumeAfterTrap});
+  } else {
+    t.apply(); state.hit++;
+    state.traps.push({name:t.name, icon:t.icon, blocked:false});
+    if(state.hit >= 3) award('lobo');
+    renderHud(); beep(SND.trap);
+    openModal({tone:'trap', iconHtml:ic(t.icon,34), eyebrow:'¡Trampa!', title:t.name, text:t.text, btn:'Seguir navegando', onClose:resumeAfterTrap});
+  }
+}
+function resumeAfterTrap(){
+  if(state.clock <= 0){ endGame('time'); return; }
+  showQuestion();
+}
+
+/* ---------- Fin de isla ---------- */
+function completeStation(){
+  const r = state.results[state.si], S = STATIONS[state.si];
+  r.done = true;
+  award('primer');
+  if(r.correct === 3) award('perfecta');
+  state.si++;
+  const last = state.si >= STATIONS.length;
+  const msg = ['Esta isla se resistió. La verás en tu hoja para repasar.','Pasaste con lo justo. Repasa los puntos fallados al final.','Buen avance, sigue así.','¡Isla perfecta!'][r.correct];
+  beep(SND.island);
+  openModal({tone:'island', iconHtml:'<div class="stars">'+stars(r.correct,34)+'</div>', eyebrow:'Isla completada', title:S.name,
+    text:r.correct+' de 3 aciertos. '+msg+(last?' Solo falta abrir el cofre.':''), btn:last?'Abrir el cofre':'Ver el mapa',
+    onClose:() => { if(last) endGame('treasure'); else showMap(); }});
+}
+
+/* ---------- Fin del juego ---------- */
+const statTotals = stmt => {
+  let c = 0, p = 0, d = true;
+  STATIONS.forEach((S,i) => { if(S.stmt === stmt){ c += state.results[i].correct; p += 3; if(!state.results[i].done) d = false; } });
+  return {c, p, d};
+};
+const totalCorrect = () => state.results.reduce((a,r) => a + r.correct, 0);
+function rankFor(c){ return c >= 22 ? 'Almirante del Balance' : c >= 18 ? 'Capitán Contable' : c >= 13 ? 'Navegante' : c >= 8 ? 'Marinero' : 'Grumete'; }
+
+function endGame(reason){
+  if(!state || state.phase === 'end') return;
+  state.phase = 'end'; state.reason = reason;
+  clearTimeout(fogTimer);
+  $('modal').hidden = true; $('feedback').hidden = true;
+  const esf = statTotals('ESF'), er = statTotals('ER');
+  if(esf.d && esf.c >= 10) award('balance', true);
+  if(er.d && er.c >= 10) award('resultados', true);
+  if(reason === 'treasure'){
+    award('tesoro', true);
+    if(state.clock >= state.startClock * 0.3) award('tiempo', true);
+    if(totalCorrect() === TOTAL_Q) award('leyenda', true);
+  }
+  renderSheet(); show('sheet');
+  $('copyBox').hidden = true;
+  $('copyMsg').textContent = 'Para entregarla, copia el texto o toma una captura de pantalla de esta hoja.';
+  if(reason === 'treasure'){ confetti(); beep(SND.win); } else beep(SND.lose);
+}
+
+function confetti(){
+  if(reduce) return;
+  const colors = ['var(--gold)','var(--good)','var(--t-activo)','var(--t-patrimonio)','var(--t-gasto)'];
+  const box = document.createElement('div'); box.className = 'confetti'; box.setAttribute('aria-hidden','true');
+  for(let i=0;i<28;i++){
+    const p = document.createElement('i');
+    p.style.left = (Math.random()*100)+'%'; p.style.background = colors[i%colors.length];
+    p.style.animationDelay = (Math.random()*0.8)+'s'; p.style.animationDuration = (2+Math.random()*1.6)+'s';
+    box.appendChild(p);
+  }
+  document.body.appendChild(box); setTimeout(() => box.remove(), 4800);
+}
+
+/* ---------- Hoja de avance ---------- */
+function renderSheet(){
+  const correct = totalCorrect();
+  const doneN = state.results.filter(r => r.done).length;
+  const used = state.startClock - state.clock;
+  const pct = Math.round(correct / TOTAL_Q * 100);
+  const esf = statTotals('ESF'), er = statTotals('ER');
+  const date = new Date().toLocaleDateString('es-EC', {day:'numeric', month:'long', year:'numeric'});
+  const head = {
+    treasure:['chest','Misión cumplida','¡Encontraste el tesoro!'],
+    time:['hourglass','Tiempo agotado','El mar se llevó el mapa'],
+    quit:['compass','Travesía interrumpida','Hoja de avance parcial']
+  }[state.reason];
+
+  let h = '<article class="sheet">';
+  h += '<div class="sheet-top"><span class="seal">'+ic(head[0],30)+'</span><div><p class="kicker">'+head[1]+'</p><h2>'+head[2]+'</h2></div></div>';
+  h += '<div class="fields"><div class="fld"><small>Estudiante</small><b>'+esc(state.name)+'</b></div><div class="fld"><small>Fecha</small><b>'+esc(date)+'</b></div><div class="fld"><small>Tiempo por pregunta</small><b>'+state.level.q+' s</b></div></div>';
+
+  h += '<h3>Resumen</h3><div class="figs">'
+    + '<div class="fig"><small>Doblones</small><div class="n">'+state.score+'</div></div>'
+    + '<div class="fig"><small>Aciertos</small><div class="n">'+correct+'/'+TOTAL_Q+'</div></div>'
+    + '<div class="fig"><small>Tiempo usado</small><div class="n">'+fmt(used)+'</div></div>'
+    + '<div class="fig"><small>Rango</small><div class="n txt">'+rankFor(correct)+'</div></div></div>';
+
+  h += '<h3>Avance por isla</h3><div class="tblwrap"><table class="tbl"><thead><tr><th>Isla</th><th>Aciertos</th><th>Estado</th></tr></thead><tbody>';
+  STATIONS.forEach((S,i) => {
+    const r = state.results[i];
+    const n = r.answers.length;
+    const ac = r.done ? r.correct+'/3' : (n ? r.correct+'/'+n : '—');
+    const stt = r.done ? '<span class="starline" aria-label="'+r.correct+' de 3 estrellas">'+stars(r.correct,14)+'</span>' : '<span class="pend">'+(n ? 'Incompleta' : 'Sin visitar')+'</span>';
+    h += '<tr><td>'+S.name+'<span class="pill '+S.stmt.toLowerCase()+'">'+S.stmt+'</span></td><td class="num">'+ac+'</td><td>'+stt+'</td></tr>';
+  });
+  h += '</tbody><tfoot><tr><td>Total</td><td class="num">'+correct+'/'+TOTAL_Q+'</td><td class="num">'+doneN+'/'+STATIONS.length+' islas</td></tr></tfoot></table></div>';
+
+  h += '<h3>Dominio por estado financiero</h3><div class="meters">'
+    + '<div><div class="meter-l"><span>ESF · Situación Financiera</span><span class="mono">'+esf.c+'/'+esf.p+'</span></div><div class="meter"><i style="width:'+(esf.c/esf.p*100)+'%"></i></div></div>'
+    + '<div><div class="meter-l"><span>ER · Resultados</span><span class="mono">'+er.c+'/'+er.p+'</span></div><div class="meter"><i style="width:'+(er.c/er.p*100)+'%"></i></div></div></div>';
+
+  h += '<h3>Insignias ('+state.badges.size+'/'+BADGES.length+')</h3><ul class="bgrid">';
+  BADGES.forEach(b => {
+    const on = state.badges.has(b.id);
+    h += '<li class="bdg'+(on?'':' locked')+'"><span class="bi">'+ic(b.icon,20)+'</span><div><b>'+b.name+'</b><span>'+b.desc+'</span></div></li>';
+  });
+  h += '</ul>';
+
+  h += '<h3>Trampas</h3>';
+  if(!state.traps.length) h += '<p>No apareció ninguna trampa en esta travesía.</p>';
+  else {
+    h += '<p>'+state.traps.length+(state.traps.length===1?' trampa':' trampas')+': '+state.blocked+' bloqueada'+(state.blocked===1?'':'s')+' con escudo y '+state.hit+' te alcanzó'+(state.hit===1?'':'ó')+'.</p><ul class="tlist" style="margin-top:8px">';
+    state.traps.forEach(t => { h += '<li>'+ic(t.icon,18)+'<span>'+t.name+' · '+(t.blocked?'bloqueada':'te alcanzó')+'</span></li>'; });
+    h += '</ul>';
+  }
+
+  h += '<h3>Para repasar</h3>';
+  if(!state.missed.length) h += '<p>'+(doneN ? 'Sin errores en lo que respondiste. Buen trabajo.' : 'Aún no respondiste ninguna pregunta.')+'</p>';
+  state.missed.forEach(m => {
+    h += '<div class="rev"><small>'+m.station+(m.timeout?' · sin tiempo':'')+'</small><p class="rq">'+esc(m.prompt)+'</p><p class="ra">'+esc(m.answer)+'</p><p>'+esc(m.x)+'</p></div>';
+  });
+  h += '</article>';
+  $('sheetBody').innerHTML = h;
+}
+
+function buildText(){
+  const correct = totalCorrect(), doneN = state.results.filter(r => r.done).length;
+  const esf = statTotals('ESF'), er = statTotals('ER');
+  const date = new Date().toLocaleDateString('es-EC', {day:'numeric', month:'long', year:'numeric'});
+  const L = [];
+  L.push('HOJA DE AVANCE · Tesoro del Libro Mayor');
+  L.push('Estudiante: '+state.name);
+  L.push('Fecha: '+date+' · Tiempo por pregunta: '+state.level.q+' s');
+  L.push('Resultado: '+({treasure:'Tesoro encontrado',time:'Tiempo agotado',quit:'Travesía interrumpida'})[state.reason]);
+  L.push('Doblones: '+state.score+' · Aciertos: '+correct+'/'+TOTAL_Q+' ('+Math.round(correct/TOTAL_Q*100)+' %) · Tiempo usado: '+fmt(state.startClock-state.clock)+' · Rango: '+rankFor(correct));
+  L.push('Dominio: ESF '+esf.c+'/'+esf.p+' · ER '+er.c+'/'+er.p);
+  L.push('');
+  L.push('ISLAS ('+doneN+'/'+STATIONS.length+' completadas)');
+  STATIONS.forEach((S,i) => {
+    const r = state.results[i], n = r.answers.length;
+    L.push('- '+S.name+' ['+S.stmt+']: '+(r.done ? r.correct+'/3' : (n ? r.correct+'/'+n+' (incompleta)' : 'sin visitar')));
+  });
+  L.push('');
+  L.push('INSIGNIAS ('+state.badges.size+'/'+BADGES.length+'): '+(BADGES.filter(b => state.badges.has(b.id)).map(b => b.name).join(', ') || 'ninguna'));
+  L.push('TRAMPAS: '+state.traps.length+' ('+state.blocked+' bloqueadas)');
+  if(state.missed.length){
+    L.push('');
+    L.push('PARA REPASAR');
+    state.missed.forEach(m => { L.push('- ['+m.station+'] '+m.prompt+' → '+m.answer); });
+  }
+  return L.join('\n');
+}
+
+/* ---------- Eventos ---------- */
+$('startBtn').addEventListener('click', () => {
+  const name = $('playerName').value.trim();
+  if(name.length < 2){ $('nameErr').hidden = false; $('playerName').focus(); return; }
+  $('nameErr').hidden = true;
+  const lv = 'unico';
+  state = newState(name, lv, $('soundToggle').checked);
+  beep(SND.island);
+  showMap();
+});
+$('finishBtn').addEventListener('click', () => {
+  const b = $('finishBtn');
+  if(!finishArm){
+    b.textContent = '¿Seguro? Toca otra vez para terminar';
+    finishArm = setTimeout(() => { finishArm = null; b.textContent = 'Terminar y ver mi hoja'; }, 3500);
+    return;
+  }
+  clearTimeout(finishArm); finishArm = null; b.textContent = 'Terminar y ver mi hoja';
+  endGame('quit');
+});
+$('copyBtn').addEventListener('click', () => {
+  const txt = buildText();
+  const box = $('copyBox');
+  const fallback = () => { box.value = txt; box.hidden = false; box.focus(); box.select(); $('copyMsg').textContent = 'Selecciona el texto de abajo y cópialo con tu teclado o menú.'; };
+  try{
+    navigator.clipboard.writeText(txt).then(() => { $('copyMsg').textContent = 'Copiado. Ya puedes pegarlo donde entregues tu hoja.'; }, fallback);
+  }catch(e){ fallback(); }
+});
+$('againBtn').addEventListener('click', () => { state = null; show('intro'); });
+document.addEventListener('keydown', e => {
+  if(!state || state.phase !== 'question') return;
+  const n = parseInt(e.key, 10);
+  if(n >= 1 && n <= 6){
+    if($('qOptions').classList.contains('fog')) return;
+    const b = $('qOptions').querySelectorAll('.opt')[n-1];
+    if(b && !b.disabled) b.click();
+  }
+});
+
+show('intro');
+})();
+</script>
+
+</body></html>
